@@ -11,6 +11,7 @@ import com.deguitard.otakrawl.OtakrawlTestRunner.GuiceModules;
 import com.deguitard.otakrawl.model.Manga;
 import com.deguitard.otakrawl.model.builders.MangaBuilder;
 import com.deguitard.otakrawl.services.OtakrawlModule;
+import com.deguitard.otakrawl.services.crawler.animeplanet.AnimePlanetSuggestionCrawler;
 import com.deguitard.otakrawl.services.exceptions.NoResultFoundException;
 import com.google.inject.Inject;
 

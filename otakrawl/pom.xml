@@ -4,7 +4,7 @@
 
 	<groupId>com.deguitard</groupId>
 	<artifactId>otakrawl</artifactId>
-	<version>0.0.2</version>
+	<version>0.0.3</version>
 	<packaging>jar</packaging>
 
 	<name>otakrawl</name>
@@ -28,10 +28,29 @@
 			<version>2.6</version>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>1.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.mashape.unirest</groupId>
+			<artifactId>unirest-java</artifactId>
+			<version>1.4.5</version>
+		</dependency>
+
+
+		<!-- DEPENDENCY INJECTOR -->
+		<dependency>
 			<groupId>com.google.inject</groupId>
 			<artifactId>guice</artifactId>
 			<version>3.0</version>
 		</dependency>
+		<dependency>
+			<groupId>com.google.inject.extensions</groupId>
+			<artifactId>guice-multibindings</artifactId>
+			<version>3.0</version>
+		</dependency>
+
 
 		<!-- HTTP CLIENT & HTML PARSING -->
 		<dependency>
@@ -39,6 +58,12 @@
 			<artifactId>jsoup</artifactId>
 			<version>1.7.2</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.4</version>
+		</dependency>
+
 
 		<!-- PERSISTENCE -->
 		<dependency>
@@ -112,11 +137,23 @@
 		<profile>
 			<id>DEV</id>
 			<properties>
-				<database.host>host</database.host>
-				<database.user>user</database.user>
-				<database.pwd>pass</database.pwd>
-				<database.name>db-dev</database.name>
-				<log.folder>/</log.folder>
+				<database.host>localhost</database.host>
+				<database.user>dev</database.user>
+				<database.pwd>DEV1DEV1</database.pwd>
+				<database.name>otakrawl-dev</database.name>
+				<download.directory>/Users/niyaven/Documents/otakrawl/downloads/</download.directory>
+				<log.folder>/Users/niyaven/Documents/otakrawl/</log.folder>
+				<mangascrape.api.key>DWhBZvuSUFmshwVyVXtfi2mMqvmup14oHXDjsnTONlfBblT4kM</mangascrape.api.key>
+			</properties>
+		</profile>
+		<profile>
+			<id>PROD</id>
+			<properties>
+				<database.host>n4v1.com</database.host>
+				<database.user>otakrawl</database.user>
+				<database.pwd>NuAaf28x2EC4</database.pwd>
+				<database.name>otakrawl</database.name>
+				<log.folder>/var/log/otakrawl</log.folder>
 			</properties>
 		</profile>
 	</profiles>

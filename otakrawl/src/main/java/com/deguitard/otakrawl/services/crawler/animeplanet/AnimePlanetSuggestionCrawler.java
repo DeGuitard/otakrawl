@@ -1,4 +1,4 @@
-package com.deguitard.otakrawl.services.crawler;
+package com.deguitard.otakrawl.services.crawler.animeplanet;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.deguitard.otakrawl.model.Manga;
+import com.deguitard.otakrawl.services.crawler.SuggestionCrawler;
 import com.deguitard.otakrawl.services.exceptions.NoResultFoundException;
 import com.deguitard.otakrawl.services.persistence.dao.MangaDao;
 import com.google.inject.Inject;
@@ -40,7 +41,7 @@ public class AnimePlanetSuggestionCrawler implements SuggestionCrawler {
 				throw new NoResultFoundException();
 			}
 			page = Jsoup.connect(resultLink.attr("abs:href")).userAgent(USER_AGENT).get();
-			Element recommendContainer = page.select(".tabs div").first();
+			Element recommendContainer = page.select(".recommendations").first();
 			Elements recommendLinks = recommendContainer.select("h4");
 			List<String> recommendedTitles = new ArrayList<>();
 			for (Element recommendLink : recommendLinks) {
@@ -49,7 +50,7 @@ public class AnimePlanetSuggestionCrawler implements SuggestionCrawler {
 			suggestions = mangaDao.findByTitles(recommendedTitles);
 			LOGGER.info("{} suggestions found.", suggestions.size());
 		} catch (IOException e) {
-			LOGGER.error("Could not find suggestions for {}.", manga.getTitle());
+			LOGGER.error("Could not find suggestions for {}.", manga.getTitle(), e);
 			throw new NoResultFoundException();
 		}
 		return suggestions;

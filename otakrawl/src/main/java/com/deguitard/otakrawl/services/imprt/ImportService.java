@@ -4,6 +4,8 @@ public interface ImportService {
 
 	void fullImport();
 
+	void merge();
+
 	void updateImport();
 
 	void updateSuggestions();

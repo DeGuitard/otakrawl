@@ -8,6 +8,8 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 public class Chapter extends Entity {
 
 	private String number;
+	private String name;
+	private int pageCount;
 	private String url;
 	private List<String> imagesUrls;
 
@@ -17,6 +19,14 @@ public class Chapter extends Entity {
 
 	public void setNumber(String number) {
 		this.number = number;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public String getUrl() {
@@ -33,6 +43,14 @@ public class Chapter extends Entity {
 
 	public void setImagesUrls(List<String> imagesUrls) {
 		this.imagesUrls = imagesUrls;
+	}
+
+	public int getPageCount() {
+		return pageCount;
+	}
+
+	public void updatePageCount() {
+		this.pageCount = imagesUrls == null ? 0 : imagesUrls.size();
 	}
 
 	@Override

@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.deguitard.otakrawl.model.Chapter;
 import com.deguitard.otakrawl.model.Manga;
+import com.deguitard.otakrawl.services.crawler.provider.CrawlSource;
 
 /**
  * Used to create a Manga easily.
@@ -20,6 +21,7 @@ import com.deguitard.otakrawl.model.Manga;
 public class MangaBuilder {
 
 	private String title;
+	private List<String> altTitles;
 	private List<String> authors;
 	private List<String> artists;
 	private Integer year;
@@ -29,9 +31,36 @@ public class MangaBuilder {
 	private String url;
 	private List<String> suggestions;
 	private String thumbnail;
+	private CrawlSource source;
+	private String mangaFoxId;
+	private boolean ongoing;
+
+	public MangaBuilder() { }
+
+	public MangaBuilder(Manga base) {
+		title = base.getTitle();
+		altTitles = base.getAltTitles();
+		authors = base.getAuthors();
+		artists = base.getArtists();
+		year = base.getYear();
+		summary = base.getSummary();
+		genres = base.getGenres();
+		chapters = base.getChapters();
+		url = base.getUrl();
+		suggestions = base.getSuggestions();
+		thumbnail = base.getThumbnail();
+		source = base.getSource();
+		mangaFoxId = base.getMangaFoxId();
+		ongoing = base.isOngoing();
+	}
 
 	public MangaBuilder title(String title) {
 		this.title = title;
+		return this;
+	}
+
+	public MangaBuilder altTitles(List<String> altTitles) {
+		this.altTitles = altTitles;
 		return this;
 	}
 
@@ -80,6 +109,21 @@ public class MangaBuilder {
 		return this;
 	}
 
+	public MangaBuilder source(CrawlSource source) {
+		this.source = source;
+		return this;
+	}
+
+	public MangaBuilder mangaFoxId(String mangaFoxId) {
+		this.mangaFoxId = mangaFoxId;
+		return this;
+	}
+
+	public MangaBuilder status(boolean ongoing) {
+		this.ongoing = ongoing;
+		return this;
+	}
+
 	/**
 	 * Once all attributes have been set, one can call this method to return
 	 * a fully initialized manga.
@@ -88,6 +132,7 @@ public class MangaBuilder {
 	public Manga createManga() {
 		Manga manga = new Manga();
 		manga.setTitle(title);
+		manga.setAltTitles(altTitles);
 		manga.setArtists(artists);
 		manga.setAuthors(authors);
 		manga.setYear(year);
@@ -97,6 +142,9 @@ public class MangaBuilder {
 		manga.setUrl(url);
 		manga.setSuggestions(suggestions);
 		manga.setThumbnail(thumbnail);
+		manga.setSource(source);
+		manga.setMangaFoxId(mangaFoxId);
+		manga.setIsOngoing(ongoing);
 
 		return manga;
 	}

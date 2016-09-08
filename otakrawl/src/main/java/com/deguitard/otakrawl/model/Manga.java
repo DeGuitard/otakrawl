@@ -1,5 +1,6 @@
 package com.deguitard.otakrawl.model;
 
+import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
@@ -7,9 +8,12 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
+import com.deguitard.otakrawl.services.crawler.provider.CrawlSource;
+
 public class Manga extends Entity {
 
 	private String title;
+	private List<String> altTitles;
 	private List<String> authors;
 	private List<String> artists;
 	private Integer year;
@@ -19,6 +23,9 @@ public class Manga extends Entity {
 	private String url;
 	private List<String> suggestions;
 	private String thumbnail;
+	private boolean ongoing;
+	private CrawlSource source;
+	private String mangaFoxId;
 
 	public String getTitle() {
 		return title;
@@ -26,6 +33,14 @@ public class Manga extends Entity {
 
 	public void setTitle(String title) {
 		this.title = title;
+	}
+
+	public List<String> getAltTitles() {
+		return altTitles;
+	}
+
+	public void setAltTitles(List<String> altTitles) {
+		this.altTitles = altTitles;
 	}
 
 	public List<String> getAuthors() {
@@ -68,6 +83,9 @@ public class Manga extends Entity {
 	}
 
 	public Deque<Chapter> getChapters() {
+		if (chapters == null) {
+			chapters = new ArrayDeque<>();
+		}
 		return chapters;
 	}
 
@@ -97,6 +115,30 @@ public class Manga extends Entity {
 
 	public void setThumbnail(String thumbnail) {
 		this.thumbnail = thumbnail;
+	}
+
+	public CrawlSource getSource() {
+		return source;
+	}
+
+	public void setSource(CrawlSource source) {
+		this.source = source;
+	}
+
+	public String getMangaFoxId() {
+		return mangaFoxId;
+	}
+
+	public void setMangaFoxId(String mangaFoxId) {
+		this.mangaFoxId = mangaFoxId;
+	}
+
+	public boolean isOngoing() {
+		return ongoing;
+	}
+
+	public void setIsOngoing(boolean ongoing) {
+		this.ongoing = ongoing;
 	}
 
 	@Override

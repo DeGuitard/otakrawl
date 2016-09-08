@@ -12,8 +12,11 @@ package com.deguitard.otakrawl;
  */
 public enum ImportType {
 
-	/** A full import consists of importing all mangas possibles, including the chapters. */
+	/** A full import consists of importing all mangas possibles, including the chapters and erasing everything before. */
 	FULL,
+
+	/** A merge consists of importing all mangas possibles, including the chapters, but not re-crawling old complete data. */
+	MERGE,
 
 	/** An update import consists of updating all existing mangas, including new chapters. */
 	UPDATE,

@@ -1,4 +1,4 @@
-package com.deguitard.otakrawl.services.crawler;
+package com.deguitard.otakrawl.services.crawler.starkana;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;

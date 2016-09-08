@@ -1,7 +1,8 @@
-package com.deguitard.otakrawl.services.crawler;
+package com.deguitard.otakrawl.services.crawler.starkana;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 
 import org.apache.commons.lang.StringUtils;
@@ -16,6 +17,9 @@ import com.deguitard.otakrawl.model.Chapter;
 import com.deguitard.otakrawl.model.Manga;
 import com.deguitard.otakrawl.model.builders.ChapterBuilder;
 import com.deguitard.otakrawl.model.builders.MangaBuilder;
+import com.deguitard.otakrawl.services.crawler.CrawlUtils;
+import com.deguitard.otakrawl.services.crawler.ICrawler;
+import com.deguitard.otakrawl.services.crawler.provider.CrawlSource;
 import com.deguitard.otakrawl.services.exceptions.NoResultFoundException;
 
 /**
@@ -31,28 +35,25 @@ public class StarKanaCrawler implements ICrawler {
 
 	/** URL of the website. */
 	private static final String WEBSITE_URL = "http://starkana.com/";
-
 	/** URL of the page listing all available mangas. */
 	private static final String LIST_URL = WEBSITE_URL + "manga/list";
 
+	/** Label of the titles row. */
+	private static final String TITLE_LABEL = "Title(s):";
 	/** Label of the authors row. */
 	private static final String AUTHOR_LABEL = "Author(s):";
-
 	/** Label of the artists row. */
 	private static final String ARTIST_LABEL = "Artist(s):";
-
 	/** Label of the genres row. */
 	private static final String GENRE_LABEL = "Genres:";
-
 	/** Label of the year row. */
 	private static final String YEAR_LABEL = "Start Date:";
-
 	/** Label of the summary row. */
 	private static final String SUMMARY_LABEL = "Summary:";
 
 	/** {@inheritDoc} */
 	public Deque<Manga> crawlMangaList() {
-		LOGGER.info("Crawling manga list.");
+		LOGGER.info("Crawling StarKana manga list.");
 		Deque<Manga> mangaList = new ArrayDeque<Manga>();
 
 		try {
@@ -65,7 +66,7 @@ public class StarKanaCrawler implements ICrawler {
 				if (mangaLink.text().equals("&")) {
 					continue;
 				}
-				Manga manga = new MangaBuilder().title(mangaLink.text()).url(mangaLink.attr("abs:href")).createManga();
+				Manga manga = new MangaBuilder().title(mangaLink.text()).url(mangaLink.attr("abs:href")).source(CrawlSource.STARKANA).createManga();
 				mangaList.add(manga);
 				LOGGER.debug("Manga named '" + manga.getTitle() + "' crawled.");
 			}
@@ -99,6 +100,12 @@ public class StarKanaCrawler implements ICrawler {
 			Elements artistsElts = new Elements();
 			Elements genresElts = new Elements();
 
+			// StarKana has empty pages, check this one.
+			if (page.select("#inner_page > div:nth-child(2) > span:nth-child(1)").first() != null) {
+				LOGGER.error("The manga named '{}' has been removed!", manga.getTitle());
+				throw new NoResultFoundException();
+			}
+
 			// Extracts all the interesting elements.
 			Element thumbnail = page.select(".olol > img:nth-child(1)").first();
 			Elements descRows = page.select("#inner_page > div:nth-child(5) > table:nth-child(1) > tbody:nth-child(1) > tr:nth-child(1) > td:nth-child(2) > table:nth-child(1) tr");
@@ -107,6 +114,13 @@ public class StarKanaCrawler implements ICrawler {
 				String rowTitle = el.select("td:nth-child(1)").first().text();
 				Element rowValue = el.select("td:nth-child(2)").first();
 				switch (rowTitle) {
+				case TITLE_LABEL:
+					String[] titlesArray = rowValue.html().split("<br />");
+					manga.setAltTitles(new ArrayList<String>());
+					for (String title : titlesArray) {
+						manga.getAltTitles().add(title.trim());
+					}
+					break;
 				case AUTHOR_LABEL:
 					authorsElts = rowValue.select("a");
 					break;
@@ -138,7 +152,7 @@ public class StarKanaCrawler implements ICrawler {
 			// Grabs the chapter list.
 			LOGGER.debug("Crawling chapter list for {}.", manga.getTitle());
 			Deque<Chapter> crawledChapters = crawlChapterList(page);
-			Deque<Chapter> mergedChapters = mergeChapterList(manga.getChapters(), crawledChapters);
+			Deque<Chapter> mergedChapters = CrawlUtils.mergeChapterList(manga.getChapters(), crawledChapters);
 			manga.setChapters(mergedChapters);
 			LOGGER.info("{} chapters crawled.", manga.getChapters().size());
 		} catch (IOException e) {
@@ -149,41 +163,9 @@ public class StarKanaCrawler implements ICrawler {
 		return manga;
 	}
 
-	/**
-	 * Creates a merge of the existing manga chapters and the crawled chapters.
-	 * If the manga has no chapter, it will return the crowled chapters.
-	 * If the manga has chapters, it will add any crawled chapter with a new URL.
-	 *
-	 * @param dbChapters : chapters already in database.
-	 * @param crawledChapters : crawled chapters.
-	 * @return the merge of the two lists.
-	 */
-	private Deque<Chapter> mergeChapterList(Deque<Chapter> dbChapters, Deque<Chapter> crawledChapters) {
-		Deque<Chapter> mergedChapters = new ArrayDeque<>();
-		if (dbChapters != null) {
-			mergedChapters = dbChapters;
-			for (Chapter crawledChapter : crawledChapters) {
-				boolean found = false;
-				for (Chapter dbChapter : dbChapters) {
-					if (dbChapter.getUrl().equals(crawledChapter.getUrl())) {
-						found = true;
-						break;
-					}
-				}
-				if (!found) {
-					mergedChapters.add(crawledChapter);
-				}
-			}
-		} else {
-			mergedChapters = crawledChapters;
-		}
-		return mergedChapters;
-	}
-
 	private Deque<Chapter> crawlChapterList(Document page) {
 		Deque<Chapter> chapterList = new ArrayDeque<Chapter>();
 
-		// All links to chapters are in div with this selector : "#inner_page td a strong".
 		Elements chaptersLinks = page.select(".download-link");
 		for (Element chapterLink : chaptersLinks) {
 			String chapterNumber = chapterLink.select("strong").text();
@@ -211,6 +193,9 @@ public class StarKanaCrawler implements ICrawler {
 				chapter.getImagesUrls().add(url);
 				LOGGER.debug("URL '{}' added.", url);
 			}
+
+			// Updates the page count.
+			chapter.updatePageCount();
 		} catch (IOException e) {
 			LOGGER.error("Could not get chapter list page!", e);
 		}
@@ -238,7 +223,7 @@ public class StarKanaCrawler implements ICrawler {
 					url = url.substring(0, url.indexOf("/chapter"));
 				}
 
-				Manga manga = new MangaBuilder().title(title).url(url).createManga();
+				Manga manga = new MangaBuilder().title(title).url(url).source(CrawlSource.STARKANA).createManga();
 				mangaList.add(manga);
 				LOGGER.debug("Manga named '{}' found.", manga.getTitle());
 			}

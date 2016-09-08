@@ -8,6 +8,7 @@ import com.deguitard.otakrawl.model.Chapter;
 public class ChapterBuilder {
 
 	private String number;
+	private String name;
 	private String url;
 	private List<String> imagesUrls;
 
@@ -17,6 +18,11 @@ public class ChapterBuilder {
 
 	public ChapterBuilder number(String number) {
 		this.number = number;
+		return this;
+	}
+
+	public ChapterBuilder name(String name) {
+		this.name = name;
 		return this;
 	}
 
@@ -33,8 +39,10 @@ public class ChapterBuilder {
 	public Chapter createChapter() {
 		Chapter chapter = new Chapter();
 		chapter.setNumber(number);
+		chapter.setName(name);
 		chapter.setUrl(url);
 		chapter.setImagesUrls(imagesUrls);
+
 		return chapter;
 	}
 }

@@ -2,6 +2,7 @@ package com.deguitard.otakrawl.services.persistence;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -13,6 +14,7 @@ import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BulkWriteOperation;
+import com.mongodb.Bytes;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
@@ -59,7 +61,7 @@ public abstract class GenericDao<T extends Entity> {
 	 * Inserts or updates the entity.
 	 * @param entity : the entity to insert/update.
 	 */
-	public void saveOrUpdate(T entity) {
+	public synchronized void saveOrUpdate(T entity) {
 		entity.generateIdIfNew();
 		DBObject dbObject = (DBObject) JSON.parse(gson.toJson(entity));
 		getCollection().save(dbObject);
@@ -71,11 +73,16 @@ public abstract class GenericDao<T extends Entity> {
 	 *
 	 * @param entities : the entities to upsert.
 	 */
-	public void saveOrUpdate(Collection<T> entities) {
+	public synchronized void saveOrUpdate(Collection<T> entities) {
+		if (entities.isEmpty()) {
+			return;
+		}
+
 		BulkWriteOperation bulk = getCollection().initializeUnorderedBulkOperation();
 
 		for (T entity : entities) {
 			entity.generateIdIfNew();
+			entity.setUpdatedAt(new Date());
 			DBObject dbEntity = (DBObject) JSON.parse(gson.toJson(entity));
 			bulk.find(new BasicDBObject("_id", entity.getId())).upsert().update(new BasicDBObject("$set", dbEntity));
 		}
@@ -88,7 +95,7 @@ public abstract class GenericDao<T extends Entity> {
 	 *
 	 * @param entity : the entity to delete.
 	 */
-	public void delete(T entity) {
+	public synchronized void delete(T entity) {
 		DBObject dbEntity = (DBObject) JSON.parse(gson.toJson(entity));
 		getCollection().remove(dbEntity);
 	}
@@ -97,7 +104,7 @@ public abstract class GenericDao<T extends Entity> {
 	 * Removes from the collection a list of entities.
 	 * @param entities : the entities to remove.
 	 */
-	public void delete(Collection<T> entities) {
+	public synchronized void delete(Collection<T> entities) {
 		ObjectId[] ids = new ObjectId[entities.size()];
 		int index = 0;
 		for (T entity : entities) {
@@ -142,7 +149,25 @@ public abstract class GenericDao<T extends Entity> {
 	 * @return a cursor to browse all the collection.
 	 */
 	public DBTypedCursor<T> findAll() {
-		DBCursor dbCursor = getCollection().find();
+		DBCursor dbCursor = getCollection().find().addOption(Bytes.QUERYOPTION_NOTIMEOUT);
+		return new DBTypedCursor<>(type, dbCursor);
+	}
+
+	/**
+	 * Drops all the data.
+	 */
+	public void dropAll() {
+		getCollection().drop();
+	}
+
+	/**
+	 * Returns a cursor to browse data based on a set of values.
+	 * @param values : the values to find.
+	 * @param field : the field the values are about.
+	 * @return a cursor to browse the results.
+	 */
+	public DBTypedCursor<T> browseByField(Iterable<?> values, String field) {
+		DBCursor dbCursor = getCollection().find(new BasicDBObject(field, new BasicDBObject("$in", values))).addOption(Bytes.QUERYOPTION_NOTIMEOUT);
 		return new DBTypedCursor<>(type, dbCursor);
 	}
 

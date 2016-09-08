@@ -1,11 +1,17 @@
 package com.deguitard.otakrawl;
 
+import java.io.IOException;
 import java.util.NoSuchElementException;
+
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
 import com.deguitard.otakrawl.services.OtakrawlModule;
 import com.deguitard.otakrawl.services.imprt.ImportService;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.mashape.unirest.http.Unirest;
 
 /**
  * <p>Entry point of Otakrawl.</p>
@@ -18,13 +24,18 @@ public class Otakrawl
 	/** The "Usage" documentation given if the parameters are incorrect. */
 	private static final String USAGE = "Usage: java -jar otakrawl.jar <full|update|suggestions>";
 
+	/** Guice injector. */
+	private static Injector injector;
+
 	/**
 	 * Main method, starts the import or displays an error.
 	 * @param args : the first argument must be the import type to do.
+	 * @throws IOException : in case the REST connection could not end properly.
 	 */
-	public static void main(final String[] args)
+	public static void main(final String[] args) throws IOException
 	{
 		ImportType importType = getImportType(args);
+		initHttpClient();
 		startImport(importType);
 	}
 
@@ -56,11 +67,13 @@ public class Otakrawl
 	 * @param importType : the kind of import to do.
 	 */
 	private static void startImport(final ImportType importType) {
-		Injector injector = Guice.createInjector(new OtakrawlModule());
-		ImportService importService = injector.getInstance(ImportService.class);
+		ImportService importService = getInjector().getInstance(ImportService.class);
 		switch (importType) {
 		case FULL:
 			importService.fullImport();
+			break;
+		case MERGE:
+			importService.merge();
 			break;
 		case UPDATE:
 			importService.updateImport();
@@ -69,5 +82,26 @@ public class Otakrawl
 			importService.updateSuggestions();
 			break;
 		}
+	}
+
+	/**
+	 * Returns the guice injector.
+	 * @return the guice injector.
+	 */
+	public static Injector getInjector() {
+		if (injector == null) {
+			injector = Guice.createInjector(new OtakrawlModule());
+		}
+		return injector;
+	}
+
+	/**
+	 * Initializes a thread safe HTTP Client.
+	 */
+	private static void initHttpClient() {
+		PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager();
+		cm.setMaxTotal(100);
+		CloseableHttpClient httpClient = HttpClients.custom().setConnectionManager(cm).build();
+		Unirest.setHttpClient(httpClient);;
 	}
 }

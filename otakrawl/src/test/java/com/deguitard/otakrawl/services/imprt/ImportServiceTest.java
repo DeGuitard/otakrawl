@@ -21,6 +21,11 @@ public class ImportServiceTest {
 	}
 
 	@Test
+	public void mergeTest() {
+		importService.merge();
+	}
+
+	@Test
 	public void updateTest() {
 		importService.updateImport();
 	}

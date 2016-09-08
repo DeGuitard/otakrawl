@@ -41,7 +41,7 @@ public class MangaDao extends GenericDao<Manga> {
 		return findByField(urls, "url");
 	}
 
-	private Deque<Manga> findByField(Iterable<String> values, String field) {
+	private Deque<Manga> findByField(Iterable<?> values, String field) {
 		// Searches & stores the mangas.
 		Deque<Manga> result = new ArrayDeque<>();
 		DBCursor cursor = getCollection().find(new BasicDBObject(field, new BasicDBObject("$in", values)));
@@ -51,9 +51,19 @@ public class MangaDao extends GenericDao<Manga> {
 		return result;
 	}
 
+	public Deque<Manga> findAllIds() {
+		Deque<Manga> results = new ArrayDeque<>();
+		for (Manga mangaDb : findAll()) {
+			Manga manga = new Manga();
+			manga.setId(mangaDb.getId());
+			results.add(manga);
+		}
+		return results;
+	}
+
 	@Override
 	protected String getCollectionName() {
-		return "mangas";
+		return "manga";
 	}
 
 }
